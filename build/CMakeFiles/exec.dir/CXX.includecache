@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/santi/LiDAR-Cpp/src/lidar.cpp
+iostream
+-
+lidar.hpp
+/home/santi/LiDAR-Cpp/src/lidar.hpp
+
+/home/santi/LiDAR-Cpp/src/lidar.hpp
+
+/home/santi/LiDAR-Cpp/src/main.cpp
+iostream
+-
+lidar.hpp
+/home/santi/LiDAR-Cpp/src/lidar.hpp
+

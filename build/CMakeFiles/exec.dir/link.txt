@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/exec.dir/src/main.cpp.o CMakeFiles/exec.dir/src/lidar.cpp.o  -o exec 
