@@ -10,22 +10,22 @@
  * 
  * ******************************************************************/
 
-// #include <ros/ros.h>
-
-#include "lidar.hpp"
+#include <ros/ros.h>
+#include <std_msgs/String.h>
+//#include <lidar.hpp>
 
 int main (int argc, char **argv) {
 
-    LidarFramework LiDAR;
+    //LidarFramework LiDAR;
 
-    // ros::init(argc, argv, "lidar");
-    // ros::NodeHandle N;
+    ros::init(argc, argv, "lidar_radar_mot_node");
+    ros::NodeHandle N;
 
-    // ros::Publisher PubLidar = N.advertise <std_msgs::string> ("topicazo", 1000);
+    //ros::Publisher PubLidar = N.advertise <std_msgs::string> ("topicazo", 1000);
 
     std::cout << "starting program" << std::endl;
 
-    LiDAR.HelloWorld();
+    //LiDAR.HelloWorld();
     
 
 }
