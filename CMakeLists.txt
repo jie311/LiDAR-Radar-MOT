@@ -215,3 +215,25 @@ target_link_libraries(lidar_radar_mot_node
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+#################
+## PCL library ##
+#################
+find_package( PCL 1.8 REQUIRED )
+
+if( PCL_FOUND )
+  # [C/C++]>[General]>[Additional Include Directories]
+  include_directories( ${PCL_INCLUDE_DIRS} )
+
+  # [C/C++]>[Preprocessor]>[Preprocessor Definitions]
+  add_definitions( ${PCL_DEFINITIONS} )
+  
+  # For Use Not PreCompiled Features 
+  #add_definitions( -DPCL_NO_PRECOMPILE )
+
+  # [Linker]>[General]>[Additional Library Directories]
+  link_directories( ${PCL_LIBRARY_DIRS} )
+
+  # [Linker]>[Input]>[Additional Dependencies]
+  target_link_libraries( project ${PCL_LIBRARIES} )
+endif()
