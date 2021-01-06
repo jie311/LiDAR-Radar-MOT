@@ -140,7 +140,7 @@ include_directories(
 
 add_executable(lidar_radar_mot_node
   src/main.cpp
-  include/LiDAR-Radar-MOT/lidar.hpp
+  include/lidar.hpp
   src/lidar.cpp)
 
 ## Rename C++ executable without prefix
