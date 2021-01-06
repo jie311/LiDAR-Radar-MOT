@@ -235,5 +235,5 @@ if( PCL_FOUND )
   link_directories( ${PCL_LIBRARY_DIRS} )
 
   # [Linker]>[Input]>[Additional Dependencies]
-  target_link_libraries( project ${PCL_LIBRARIES} )
+  target_link_libraries(lidar_radar_mot_node ${PCL_LIBRARIES} )
 endif()

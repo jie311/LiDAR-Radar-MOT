@@ -12,21 +12,21 @@
 
 #include <ros/ros.h>
 #include <std_msgs/String.h>
-//#include <lidar.hpp>
+
+void LiDAR_CB (const t4ac_msgs::BEV_detections_list::ConstPtr& Lidar_Detections_Msg) {
+
+    LiDAR.Xyz_Filter()
+    LiDAR.Angle_Filter()
+}
+
 
 int main (int argc, char **argv) {
 
-    //LidarFramework LiDAR;
+    LidarFramework LiDAR;
 
     ros::init(argc, argv, "lidar_radar_mot_node");
     ros::NodeHandle N;
 
-    //ros::Publisher PubLidar = N.advertise <std_msgs::string> ("topicazo", 1000);
-
     std::cout << "starting program" << std::endl;
-
-    //LiDAR.HelloWorld();
-    // Test commit
-    
 
 }

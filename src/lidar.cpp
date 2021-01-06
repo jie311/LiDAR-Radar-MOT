@@ -94,7 +94,7 @@ std::unordered_set<int> LidarFramework::Ransac3d (pcl::PointCloud<pcl::PointXYZ>
         // 1. Choose three random points
         std::unordered_set<int> TargetPoints;
         while(TargetPoints.size() < 3) {
-            TargetPoints.insert(rand()%Cloud->size);
+            TargetPoints.insert(rand()%Cloud->size());
         }
 
         // 2. Parameters required for the plane equation
@@ -124,7 +124,7 @@ std::unordered_set<int> LidarFramework::Ransac3d (pcl::PointCloud<pcl::PointXYZ>
 
         // 3. For all the points in the cloud, estimate distance to
         //    the plane
-        for (int i = 0; i<Cloud->points.size; i++) {
+        for (int i = 0; i<Cloud->points.size(); i++) {
             
             // If the point is already an inlier, continue
             if (TargetPoints.count(i) > 0) {
