@@ -23,47 +23,38 @@ void LidarFramework::HelloWorld() {
 }
 
 /****************************************************
- *  XYZ filtering
+ *  XYZ and angle cloud filtering
  * 
  *  I- Non filetered cloud
- *  O- Filtered cloud by XYZ
+ *  O- Filtered cloud by XYZ and angle
  * **************************************************/
 
-pcl::PointCloud<pcl::PointXYZ> LidarFramework::XyzFilter (pcl::PointCloud<pcl::PointXYZ>::Ptr NonFilteredCloud) {
+pcl::PointCloud<pcl::PointXYZ> LidarFramework::CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud) {
 
-    pcl::PointCloud<pcl::PointXYZ> FilteredCloud;
+    pcl::PointCloud<pcl::PointXYZ> auxFilteredCloud;
+    
+    // XYZ filter
 
-    for (int i = 0; i < NonFilteredCloud->points.size(); i++) {
+    for (int i = 0; i < nonFilteredCloud->points.size(); i++) {
 
-        pcl::PointXYZ Point = NonFilteredCloud->points[i];
+        pcl::PointXYZ Point = nonFilteredCloud->points[i];
 
         // If the point is above the sidewalk -> push back
         if (Point.z > -1.90) {
-            FilteredCloud.points.push_back(Point);
+            auxFilteredCloud.points.push_back(Point);
         }
     }
 
-    return FilteredCloud;
-
-}
-
-/****************************************************
- *  Angle filtering
- * 
- *  I- Non filetered cloud
- *  O- Filtered cloud by angle
- * **************************************************/
-
-pcl::PointCloud<pcl::PointXYZ> LidarFramework::AngleFilter (pcl::PointCloud<pcl::PointXYZ>::Ptr NonFilteredCloud) {
+    // Angle filter
 
     pcl::PointCloud<pcl::PointXYZ> FilteredCloud;
     float FieldOfView = 80;
     double FovMin = -(FieldOfView/2)*(3.14/180);;
     double FovMax = (FieldOfView/2)*(3.14/180);
 
-    for (int i = 0; i < NonFilteredCloud->points.size(); i++) {
+    for (int i = 0; i < auxFilteredCloud->points.size(); i++) {
 
-        pcl::PointXYZ Point = NonFilteredCloud->points[i];
+        pcl::PointXYZ Point = auxFilteredCloud->points[i];
         double PointAngle = atan2(Point.y, Point.x);
 
         // If the point is between Fov/2 and -Fov/2
@@ -74,6 +65,38 @@ pcl::PointCloud<pcl::PointXYZ> LidarFramework::AngleFilter (pcl::PointCloud<pcl:
     }
 
     return FilteredCloud;
+
+}
+
+
+/****************************************************
+ *  Cloud clustering
+ * 
+ *  I- Cloud, MaxIterations, Threshold
+ *  O- InlierPoints
+ * **************************************************/
+
+void LidarFramework::CloudClustering (pcl::PointCloud<PointXYZ>::Ptr Cloud, float Tolerance, int MinSize, int MaxSize) {
+
+    // -- KD-tree definition
+    pcl::search::KdTree<pcl::PointXYZ>::Ptr Tree (new pcl::search::KdTree<pcl::PointXYZ>);
+    Tree->setInputCloud(Cloud);
+
+    // -- Euclidean cluster extraction object
+    std::vector<pcl::PointIndices> ClusterIndices;
+    pcl::EuclideanClusterExtraction<PointT> EC;
+    EC.setClusterTolerance(Tolerance);
+    EC.setMinClusterSize(MinSize);
+    EC.setMaxClusterSize(MaxSize);
+    EC.setSearchMethod(Tree);
+    EC.setInputCloud(Cloud);
+    EC.extract(ClusterIndices);
+
+
+    // -- Clusters storage
+
+
+
 
 }
 
@@ -158,3 +181,36 @@ std::unordered_set<int> LidarFramework::Ransac3d (pcl::PointCloud<pcl::PointXYZ>
     return InlierPoints;
 
 }
+
+
+/****************************************************
+ *  Angle filtering
+ * 
+ *  I- Non filetered cloud
+ *  O- Filtered cloud by angle
+ * **************************************************/
+
+/*
+pcl::PointCloud<pcl::PointXYZ> LidarFramework::AngleFilter (pcl::PointCloud<pcl::PointXYZ>::Ptr NonFilteredCloud) {
+
+    pcl::PointCloud<pcl::PointXYZ> FilteredCloud;
+    float FieldOfView = 80;
+    double FovMin = -(FieldOfView/2)*(3.14/180);;
+    double FovMax = (FieldOfView/2)*(3.14/180);
+
+    for (int i = 0; i < NonFilteredCloud->points.size(); i++) {
+
+        pcl::PointXYZ Point = NonFilteredCloud->points[i];
+        double PointAngle = atan2(Point.y, Point.x);
+
+        // If the point is between Fov/2 and -Fov/2
+        if (PointAngle < FovMax && PointAngle > FovMin) {
+            FilteredCloud.points.push_back(Point);
+        }
+
+    }
+
+    return FilteredCloud;
+
+}
+*/

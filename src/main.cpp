@@ -13,13 +13,10 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 
-void LiDAR_CB (const t4ac_msgs::BEV_detections_list::ConstPtr& Lidar_Detections_Msg) {
+// Definition of callbacks
+void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg);
 
-    LiDAR.Xyz_Filter()
-    LiDAR.Angle_Filter()
-}
-
-
+// Main function
 int main (int argc, char **argv) {
 
     LidarFramework LiDAR;
@@ -28,5 +25,28 @@ int main (int argc, char **argv) {
     ros::NodeHandle N;
 
     std::cout << "starting program" << std::endl;
+
+}
+
+// Development of callbacks
+void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
+
+    pcl::PointCloud<pcl::PointXYZ> nonFilteredCloud;
+    pcl::PointCloud<pcl::PointXYZ> FilteredCloud;
+
+    // Transforming ROS message into PCL point cloud
+    pcl::fromROSmsg(*LidarMsg, *nonFilteredCloud);
+
+    // Cloud filtering by XYZ and angle
+    pcl::PointCloud<pcl::PointXYZ> auxFilteredCloud = LiDAR.CloudFiltering(nonFilteredCloud);
+    *FilteredCloud = auxFilteredCloud;
+
+    // Publishing coloured filtered cloud as a ROS msg
+    sensor_msgs::PointCloud2 LidarCloud2;
+    pcl::toROSmsg(*FilteredCloud, LidarCloud2);
+    // TODO: publisher
+
+    // Clustering extraction from filtered cloud
+
 
 }
