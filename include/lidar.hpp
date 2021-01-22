@@ -47,8 +47,8 @@
             ~LidarFramework();
 
             void HelloWorld();
-            pcl::PointCloud<pcl::PointXYZ> XyzFilter (pcl::PointCloud<pcl::PointXYZ>::Ptr NonFilteredCloud);
-            pcl::PointCloud<pcl::PointXYZ> AngleFilter (pcl::PointCloud<pcl::PointXYZ>::Ptr NonFilteredCloud);
+            pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud);
+            void CloudClustering (pcl::PointCloud<PointXYZ>::Ptr Cloud, float Tolerance, int MinSize, int MaxSize);
             std::unordered_set<int> Ransac3d (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold);
                                    
     };

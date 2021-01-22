@@ -1,4 +1,4 @@
-#include "lidar.hpp"
+#include "../include/lidar.hpp"
 
 /****************************************************
  *  Constructor & Deconstructor
@@ -91,7 +91,6 @@ void LidarFramework::CloudClustering (pcl::PointCloud<PointXYZ>::Ptr Cloud, floa
     EC.setSearchMethod(Tree);
     EC.setInputCloud(Cloud);
     EC.extract(ClusterIndices);
-
 
     // -- Clusters storage
 
