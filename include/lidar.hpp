@@ -1,5 +1,5 @@
-#ifndef LIDAR_H_
-#define LIDAR_H_
+#ifndef LIDAR_HPP_
+#define LIDAR_HPP_
 
 #include <iostream>
 #include <cmath>
@@ -25,33 +25,20 @@
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/impl/point_types.hpp>
 
-    class LidarFramework {
+#include <iostream>
+#include <vector>
 
-        private:
+#include "../include/object.hpp"
 
-            // --- XyzFilter ---
+    // Cloud filtering function
+    pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud);
+    
+    // Plane segmentation function with Ransac3D
+    std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold);
 
-            // --- AngleFilter ---
+    // Cloud separation function (TO BE DONE)
 
-            // --- Ransac3d ---
-            // int MaxIterations;
-            // float Threshold;
-            // pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud;
+    // Clustering extraction function
+    void ClusteringExtraction (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, float Tolerance, int MinSize, int MaxSize, std::vector<Object> *outputObjects, int *numOutputObjects);
 
-        public:
-
-            // Constructor
-            LidarFramework();
-
-            // De-constructor
-            ~LidarFramework();
-
-            void HelloWorld();
-            pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud);
-            void CloudClustering (pcl::PointCloud<PointXYZ>::Ptr Cloud, float Tolerance, int MinSize, int MaxSize);
-            std::unordered_set<int> Ransac3d (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold);
-                                   
-    };
-
-
-#endif /* LIDAR_H_*/
+#endif

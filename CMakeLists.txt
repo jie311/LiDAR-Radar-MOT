@@ -8,12 +8,15 @@ project(LiDAR-Radar-MOT)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  geometry_msgs
   roscpp
   rospy
+  sensor_msgs
   std_msgs
-  message_generation
-  pcl_conversions
+  visualization_msgs
   pcl_ros
+  pcl_conversions
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -73,7 +76,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs
+#   geometry_msgs#   sensor_msgs#   std_msgs
 # )
 
 ################################################
@@ -107,8 +110,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES LiDAR-Radar-MOT
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+#  LIBRARIES LiDAR2
+#  CATKIN_DEPENDS geometry_msgs roscpp rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
@@ -121,12 +124,12 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
-  include/LiDAR-Radar-MOT
+  include/
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/LiDAR-Radar-MOT.cpp
+#   src/${PROJECT_NAME}/main.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -137,12 +140,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-
 add_executable(lidar_radar_mot_node
   src/main.cpp
-  include/lidar.hpp
-  include/data.hpp
-  include/ros.hpp
   src/lidar.cpp)
 
 ## Rename C++ executable without prefix
@@ -153,15 +152,14 @@ add_executable(lidar_radar_mot_node
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-
-add_dependencies(lidar_radar_mot_node 
+add_dependencies(lidar_radar_mot_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS} 
   ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-
 target_link_libraries(lidar_radar_mot_node
-  ${catkin_LIBRARIES})
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -210,7 +208,7 @@ target_link_libraries(lidar_radar_mot_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_LiDAR-Radar-MOT.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_LiDAR2.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

@@ -1,39 +1,17 @@
 #include "../include/lidar.hpp"
 
 /****************************************************
- *  Constructor & Deconstructor
- * 
- *  I- -
- *  O- -
- * **************************************************/
-LidarFramework::LidarFramework(void) {}
-
-LidarFramework::~LidarFramework(void) {}
-
-/****************************************************
- *  Hello World function
- * 
- *  I- -
- *  O- -
- * **************************************************/
-void LidarFramework::HelloWorld() {
-
-    std::cout << "lidar says hello world" << std::endl;
-
-}
-
-/****************************************************
  *  XYZ and angle cloud filtering
  * 
  *  I- Non filetered cloud
  *  O- Filtered cloud by XYZ and angle
  * **************************************************/
 
-pcl::PointCloud<pcl::PointXYZ> LidarFramework::CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud) {
+pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud) {
 
     pcl::PointCloud<pcl::PointXYZ> auxFilteredCloud;
     
-    // XYZ filter
+    // -- XYZ filtering
 
     for (int i = 0; i < nonFilteredCloud->points.size(); i++) {
 
@@ -45,16 +23,16 @@ pcl::PointCloud<pcl::PointXYZ> LidarFramework::CloudFiltering (pcl::PointCloud<p
         }
     }
 
-    // Angle filter
+    // -- Angle filtering
 
     pcl::PointCloud<pcl::PointXYZ> FilteredCloud;
     float FieldOfView = 80;
     double FovMin = -(FieldOfView/2)*(3.14/180);;
     double FovMax = (FieldOfView/2)*(3.14/180);
 
-    for (int i = 0; i < auxFilteredCloud->points.size(); i++) {
+    for (int i = 0; i < auxFilteredCloud.points.size(); i++) {
 
-        pcl::PointXYZ Point = auxFilteredCloud->points[i];
+        pcl::PointXYZ Point = auxFilteredCloud.points[i];
         double PointAngle = atan2(Point.y, Point.x);
 
         // If the point is between Fov/2 and -Fov/2
@@ -68,45 +46,15 @@ pcl::PointCloud<pcl::PointXYZ> LidarFramework::CloudFiltering (pcl::PointCloud<p
 
 }
 
-
 /****************************************************
- *  Cloud clustering
+ *  Plane segmentation with RANSAC-3D algorithm
+ *  (needs subsequent cloud separation)
  * 
  *  I- Cloud, MaxIterations, Threshold
- *  O- InlierPoints
+ *  O- InlierPoints (ready for cloud separation)
  * **************************************************/
 
-void LidarFramework::CloudClustering (pcl::PointCloud<PointXYZ>::Ptr Cloud, float Tolerance, int MinSize, int MaxSize) {
-
-    // -- KD-tree definition
-    pcl::search::KdTree<pcl::PointXYZ>::Ptr Tree (new pcl::search::KdTree<pcl::PointXYZ>);
-    Tree->setInputCloud(Cloud);
-
-    // -- Euclidean cluster extraction object
-    std::vector<pcl::PointIndices> ClusterIndices;
-    pcl::EuclideanClusterExtraction<PointT> EC;
-    EC.setClusterTolerance(Tolerance);
-    EC.setMinClusterSize(MinSize);
-    EC.setMaxClusterSize(MaxSize);
-    EC.setSearchMethod(Tree);
-    EC.setInputCloud(Cloud);
-    EC.extract(ClusterIndices);
-
-    // -- Clusters storage
-
-
-
-
-}
-
-/****************************************************
- *  Ransac3D algorithm (plane fitting algorithm)
- * 
- *  I- Cloud, MaxIterations, Threshold
- *  O- InlierPoints
- * **************************************************/
-
-std::unordered_set<int> LidarFramework::Ransac3d (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold) {
+std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold) {
 
     auto StartTime = std::chrono::steady_clock::now();
 
@@ -183,33 +131,92 @@ std::unordered_set<int> LidarFramework::Ransac3d (pcl::PointCloud<pcl::PointXYZ>
 
 
 /****************************************************
- *  Angle filtering
+ *  Cloud separation (TO BE DONE)
  * 
- *  I- Non filetered cloud
- *  O- Filtered cloud by angle
+ *  I- Original cloud, Inliers to split
+ *  O- New cloud with only inliers
  * **************************************************/
 
-/*
-pcl::PointCloud<pcl::PointXYZ> LidarFramework::AngleFilter (pcl::PointCloud<pcl::PointXYZ>::Ptr NonFilteredCloud) {
 
-    pcl::PointCloud<pcl::PointXYZ> FilteredCloud;
-    float FieldOfView = 80;
-    double FovMin = -(FieldOfView/2)*(3.14/180);;
-    double FovMax = (FieldOfView/2)*(3.14/180);
+ /****************************************************
+ *  Clustering extraction
+ * 
+ *  I- Original cloud, Inliers to split
+ *  O- New cloud with only inliers
+ * **************************************************/
 
-    for (int i = 0; i < NonFilteredCloud->points.size(); i++) {
+ void ClusteringExtraction (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, float Tolerance, int MinSize, int MaxSize, std::vector<Object>* outputObjects, int* numOutputObjects) {
 
-        pcl::PointXYZ Point = NonFilteredCloud->points[i];
-        double PointAngle = atan2(Point.y, Point.x);
+    // -- KD-tree object definition
+    pcl::search::KdTree<pcl::PointXYZ>::Ptr Tree (new pcl::search::KdTree<pcl::PointXYZ>);
+    Tree->setInputCloud(Cloud);
 
-        // If the point is between Fov/2 and -Fov/2
-        if (PointAngle < FovMax && PointAngle > FovMin) {
-            FilteredCloud.points.push_back(Point);
+    // -- Configuration of the search method of extraction
+    std::vector<pcl::PointIndices> ClusterIndices;
+    pcl::EuclideanClusterExtraction<pcl::PointXYZ> EC;
+    EC.setClusterTolerance(Tolerance);
+    EC.setMinClusterSize(MinSize);
+    EC.setMaxClusterSize(MaxSize);
+    EC.setSearchMethod(Tree);
+    EC.setInputCloud(Cloud);
+    EC.extract(ClusterIndices);
+
+    // -- Clusters storage
+    for (std::vector<pcl::PointIndices>::const_iterator it = ClusterIndices.begin (); it != ClusterIndices.end (); ++it) {
+
+        pcl::PointCloud<pcl::PointXYZ>::Ptr CloudCluster (new pcl::PointCloud<pcl::PointXYZ>);
+        for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit) {
+            CloudCluster->push_back ((*Cloud)[*pit]);
+        }
+        
+        CloudCluster->width = CloudCluster->size ();
+        CloudCluster->height = 1;
+        CloudCluster->is_dense = true;
+
+        // Initialize point cloud vertices
+        float xmin = INFINITY, xmax = -INFINITY, ymin = INFINITY, ymax = -INFINITY, zmin = INFINITY, zmax = -INFINITY;
+        float xcen = -INFINITY, ycen = -INFINITY, zcen = -INFINITY;
+
+        // Cloud vertices search
+        for (int i = 0; i < CloudCluster->points.size(); i++){
+
+            if (CloudCluster->points[i].x < xmin) {xmin = CloudCluster->points[i].x;}
+            else if (CloudCluster->points[i].x > xmax) {xmax = CloudCluster->points[i].x;}
+            else if (CloudCluster->points[i].y < ymin) {ymin = CloudCluster->points[i].y;}
+            else if (CloudCluster->points[i].y > ymax) {ymax = CloudCluster->points[i].y;}
+            else if (CloudCluster->points[i].z < zmin) {zmin = CloudCluster->points[i].z;}
+            else if (CloudCluster->points[i].z > zmax) {zmax = CloudCluster->points[i].z;}
+
         }
 
+        // Calculus of the centroid
+        xcen = (xmax + xmin) / 2.0;
+        ycen = (ymax + ymin) / 2.0;
+        zcen = (zmax + zmin) / 2.0;
+
+        // Creation of an object type
+        Object object;
+
+        object.x_min = xmin;
+        object.x_max = xmax;
+        object.y_min = ymin;
+        object.y_max = ymax;
+        object.z_min = zmin;
+        object.z_max = zmax;
+
+        object.d = xmax - xmin;
+        object.w = ymax - ymin;
+        object.h = zmax - zmin;
+
+        object.centroid_x = xcen;
+        object.centroid_y = ycen;
+        object.centroid_z = zcen;
+
+        object.type = "none";
+        object.cloud = CloudCluster;
+
+        outputObjects->push_back(object);
+        *numOutputObjects = *numOutputObjects + 1;
     }
 
-    return FilteredCloud;
-
 }
-*/
