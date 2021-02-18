@@ -16,6 +16,7 @@
 
 // -- ROS modules includes
 #include <ros/ros.h>
+#include <std_msgs/ColorRGBA.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <visualization_msgs/Marker.h>
 
@@ -56,7 +57,47 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
     // 3.b. Publishing intermediate output 2 -> segmented plane
 
     // 4. Clustering extraction
+    std::vector<Object> Obstacles;
+    int numObstacles = 0;
+
+    pcl::PointCloud<pcl::PointXYZ>::Ptr ObstaclesCloud;
+    *ObstaclesCloud = auxFilteredCloud;
+    ClusteringExtraction(ObstaclesCloud, 1, 8, 400, &Obstacles, &numObstacles);
+
+    // -- Colours
+    std_msgs::ColorRGBA red;
+    red.a = 1.0;
+    red.r = 1.0;
+    red.g = 0.0;
+    red.b = 0.0;
+
     // 4.b. Publsihing clusters
+    for (int i = 0; i < Obstacles.size(); i++) {
+
+		visualization_msgs::Marker ObstaclesMarker;
+
+        ObstaclesMarker.header.frame_id = "/base_link";                          // map == global coordinates. Base_link == local coordinates
+        ObstaclesMarker.header.stamp = LidarMsg->header.stamp;
+        ObstaclesMarker.ns = "map_manager_visualization";
+        ObstaclesMarker.action = visualization_msgs::Marker::ADD;
+        ObstaclesMarker.type = visualization_msgs::Marker::SPHERE;
+        ObstaclesMarker.id = Obstacles[i].object_id;
+
+        ObstaclesMarker.points.clear();
+
+        ObstaclesMarker.color = red;
+        ObstaclesMarker.scale.x = 0.50;
+        ObstaclesMarker.scale.y = 0.50;
+        ObstaclesMarker.scale.z = 0.50;
+        ObstaclesMarker.lifetime = ros::Duration(0.40);
+
+        ObstaclesMarker.pose.position.x = Obstacles[i].centroid_x;
+        ObstaclesMarker.pose.position.y = Obstacles[i].centroid_y;
+        ObstaclesMarker.pose.position.z = Obstacles[i].centroid_z;
+
+		pub_LiDAR_ObstaclesMarkers.publish(ObstaclesMarker);
+	}
+
     // 4.c. Publishing bounding boxes
 
 }
@@ -69,11 +110,11 @@ int main (int argc, char** argv) {
     ros::NodeHandle nh;
 
     // -- ROS publishers initialization
-    pub_LiDAR_FilteredCloud = nh.advertise<sensor_msgs::PointCloud2>("topic_que_tampoco_se_cual_es", 1, true);
-    pub_LiDAR_ObstaclesMarkers = nh.advertise<visualization_msgs::Marker>("Otro_topic_cuyo_nombre_ya_decidire", 1, true);
+    pub_LiDAR_FilteredCloud = nh.advertise<sensor_msgs::PointCloud2>("/t4ac_perception/perception/detection/filtered_cloud", 1, true);
+    pub_LiDAR_ObstaclesMarkers = nh.advertise<visualization_msgs::Marker>("/t4ac_perception/perception/detection/obstacle_markers", 1, true);
 
     // -- ROS subscribers initialization
-    sub_LiDAR_RawPointCloud = nh.subscribe("topic_que_no_conozco", 1, &LiDAR_CB);
+    sub_LiDAR_RawPointCloud = nh.subscribe("lidar", 1, &LiDAR_CB);
 
     // -- ROS spin
     ros::spin();
