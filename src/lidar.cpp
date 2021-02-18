@@ -181,11 +181,11 @@ std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr C
         for (int i = 0; i < CloudCluster->points.size(); i++){
 
             if (CloudCluster->points[i].x < xmin) {xmin = CloudCluster->points[i].x;}
-            else if (CloudCluster->points[i].x > xmax) {xmax = CloudCluster->points[i].x;}
-            else if (CloudCluster->points[i].y < ymin) {ymin = CloudCluster->points[i].y;}
-            else if (CloudCluster->points[i].y > ymax) {ymax = CloudCluster->points[i].y;}
-            else if (CloudCluster->points[i].z < zmin) {zmin = CloudCluster->points[i].z;}
-            else if (CloudCluster->points[i].z > zmax) {zmax = CloudCluster->points[i].z;}
+            if (CloudCluster->points[i].x > xmax) {xmax = CloudCluster->points[i].x;}
+            if (CloudCluster->points[i].y < ymin) {ymin = CloudCluster->points[i].y;}
+            if (CloudCluster->points[i].y > ymax) {ymax = CloudCluster->points[i].y;}
+            if (CloudCluster->points[i].z < zmin) {zmin = CloudCluster->points[i].z;}
+            if (CloudCluster->points[i].z > zmax) {zmax = CloudCluster->points[i].z;}
 
         }
 

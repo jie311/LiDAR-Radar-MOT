@@ -36,9 +36,9 @@ ros::Subscriber sub_LiDAR_RawPointCloud;
 void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
 
     // Auxiliar point clouds
-    pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr FilteredCloud;
-
+    pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr FilteredCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    
     // 1. Transforming ROS message into PCL point cloud
     pcl::fromROSMsg(*LidarMsg, *nonFilteredCloud);
 
@@ -51,6 +51,7 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
     pcl::toROSMsg(*FilteredCloud, msgFilteredCloud);
     msgFilteredCloud.header.frame_id = LidarMsg->header.frame_id;
     msgFilteredCloud.header.stamp = LidarMsg->header.stamp;
+
     pub_LiDAR_FilteredCloud.publish(msgFilteredCloud);
 
     // 3. Plane segmentation
@@ -60,9 +61,9 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
     std::vector<Object> Obstacles;
     int numObstacles = 0;
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr ObstaclesCloud;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr ObstaclesCloud (new pcl::PointCloud<pcl::PointXYZ>);
     *ObstaclesCloud = auxFilteredCloud;
-    ClusteringExtraction(ObstaclesCloud, 1, 8, 400, &Obstacles, &numObstacles);
+    ClusteringExtraction(ObstaclesCloud, 1, 10, 400, &Obstacles, &numObstacles);
 
     // -- Colours
     std_msgs::ColorRGBA red;
@@ -76,7 +77,7 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
 
 		visualization_msgs::Marker ObstaclesMarker;
 
-        ObstaclesMarker.header.frame_id = "/base_link";                          // map == global coordinates. Base_link == local coordinates
+        ObstaclesMarker.header.frame_id = "/ego_vehicle/lidar/lidar1";                          // map == global coordinates. Base_link == local coordinates
         ObstaclesMarker.header.stamp = LidarMsg->header.stamp;
         ObstaclesMarker.ns = "map_manager_visualization";
         ObstaclesMarker.action = visualization_msgs::Marker::ADD;
@@ -91,6 +92,7 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
         ObstaclesMarker.scale.z = 0.50;
         ObstaclesMarker.lifetime = ros::Duration(0.40);
 
+        std::cout << "XYZ: " << Obstacles[i].centroid_x << " " << Obstacles[i].centroid_y << " " << Obstacles[i].centroid_z << std::endl;
         ObstaclesMarker.pose.position.x = Obstacles[i].centroid_x;
         ObstaclesMarker.pose.position.y = Obstacles[i].centroid_y;
         ObstaclesMarker.pose.position.z = Obstacles[i].centroid_z;
@@ -114,7 +116,7 @@ int main (int argc, char** argv) {
     pub_LiDAR_ObstaclesMarkers = nh.advertise<visualization_msgs::Marker>("/t4ac_perception/perception/detection/obstacle_markers", 1, true);
 
     // -- ROS subscribers initialization
-    sub_LiDAR_RawPointCloud = nh.subscribe("lidar", 1, &LiDAR_CB);
+    sub_LiDAR_RawPointCloud = nh.subscribe("/carla/ego_vehicle/lidar/lidar1/point_cloud", 1, &LiDAR_CB);
 
     // -- ROS spin
     ros::spin();
