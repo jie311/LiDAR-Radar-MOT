@@ -3,8 +3,8 @@
  *  Multi-Object Tracking system based on LiDAR and Radar for 
  *  Intelligent Vehicles Applications
  * 
- *  Authors: Santiago Montiel Marín and Carlos Gómez Huélamo
- * 
+ *  @authors: Santiago Montiel Marín and Carlos Gómez Huélamo
+ *
  *  RobeSafe Research Group
  *  Department of Electronics, University of Alcalá
  * 
@@ -35,15 +35,13 @@ ros::Subscriber sub_LiDAR_RawPointCloud;
 // -- LiDAR callback
 void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
 
-    // Auxiliar point clouds
-    pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr FilteredCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    
     // 1. Transforming ROS message into PCL point cloud
+    pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::fromROSMsg(*LidarMsg, *nonFilteredCloud);
 
     // 2. Cloud filtering by XYZ and angle
     pcl::PointCloud<pcl::PointXYZ> auxFilteredCloud = CloudFiltering(nonFilteredCloud);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr FilteredCloud (new pcl::PointCloud<pcl::PointXYZ>);
     *FilteredCloud = auxFilteredCloud;
 
     // 2.b. Publishing intermediate output 1 -> filtered cloud
@@ -67,10 +65,7 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
 
     // -- Colours
     std_msgs::ColorRGBA red;
-    red.a = 1.0;
-    red.r = 1.0;
-    red.g = 0.0;
-    red.b = 0.0;
+    red.a = 1.0, red.r = 1.0, red.g = 0.0, red.b = 0.0;
 
     // 4.b. Publsihing clusters
     for (int i = 0; i < Obstacles.size(); i++) {
