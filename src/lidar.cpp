@@ -51,7 +51,7 @@ pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::P
  *  (needs subsequent cloud separation)
  * 
  *  I- Cloud, MaxIterations, Threshold
- *  O- InlierPoints (ready for cloud separation)
+ *  O- Pair of clouds (plane and obstacles)
  * **************************************************/
 
 std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold) {
@@ -97,9 +97,7 @@ std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::P
         for (int i = 0; i<Cloud->points.size(); i++) {
             
             // If the point is already an inlier, continue
-            if (TargetPoints.count(i) > 0) {
-                continue;
-            }
+            if (TargetPoints.count(i) > 0) {    continue;   }
 
             // Distance from a point to the plane
             pcl::PointXYZ Point = Cloud->points[i];

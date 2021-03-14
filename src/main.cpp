@@ -26,6 +26,7 @@
 
 // -- ROS publishers definitions
 ros::Publisher pub_LiDAR_FilteredCloud;
+ros::Publisher pub_LiDAR_RoadCloud;
 ros::Publisher pub_LiDAR_ObstaclesMarkers;
 //ros::Publisher pub_LiDAR_BoundingBoxes;
 
@@ -62,7 +63,20 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
     pub_LiDAR_FilteredCloud.publish(msgFilteredCloud);
 
     // 2. PLANE SEGMENTATION (with Ransac3D algorithm)
+    std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segCloud;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr roadCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr obstCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    segCloud = PlaneSegmentation(FilteredCloud, 100, 0.2);
+    *obstCloud = segCloud.first;
+    *roadCloud = segCloud.second;
+
     // 2.b. Publishing intermediate output 2 -> segmented plane
+    sensor_msgs::PointCloud2 msgRoadCloud;
+    pcl::toROSMsg(*roadCloud, msgRoadCloud);
+    msgRoadCloud.header.frame_id = LidarMsg->header.frame_id;
+    msgRoadCloud.header.stamp = LidarMsg->header.stamp;
+
+    pub_LiDAR_RoadCloud.publish(msgRoadCloud);
 
     // 3. CLUSTERING EXTRACTION
     std::vector<Object> Obstacles;
@@ -113,6 +127,7 @@ int main (int argc, char** argv) {
 
     // -- ROS publishers initialization
     pub_LiDAR_FilteredCloud = nh.advertise<sensor_msgs::PointCloud2>("/t4ac_perception/perception/detection/filtered_cloud", 1, true);
+    pub_LiDAR_RoadCloud = nh.advertise<sensor_msgs::PointCloud2>("/t4ac_perception/perception/detection/road_cloud", 1, true);
     pub_LiDAR_ObstaclesMarkers = nh.advertise<visualization_msgs::Marker>("/t4ac_perception/perception/detection/obstacle_markers", 1, true);
 
     // -- ROS subscribers initialization
