@@ -54,15 +54,15 @@ pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::P
  *  O- InlierPoints (ready for cloud separation)
  * **************************************************/
 
-pcl::Indices PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold) {
+std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold) {
 
     auto StartTime = std::chrono::steady_clock::now();
 
-    pcl::Indices InlierPoints;
+    std::unordered_set<int> InlierPoints;
     while (MaxIterations--) {
 
         // 1. Choose three random points
-        pcl::Indices TargetPoints;
+        std::unordered_set<int> TargetPoints;
         while(TargetPoints.size() < 3) {
             TargetPoints.insert(rand()%Cloud->size());
         }
@@ -137,7 +137,7 @@ pcl::Indices PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int M
  *  O- Pair of clouds: plane and obstacles
  * **************************************************/
 
-std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> CloudSeparation (pcl::Indices inliers, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud) {
+std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> CloudSeparation (std::unordered_set<int> inliers, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud) {
 
     // Creating two new point clouds, one with obstacles and other with plane
     pcl::PointCloud<pcl::PointXYZ>::Ptr obstCloud (new pcl::PointCloud<pcl::PointXYZ>);
