@@ -49,9 +49,9 @@ struct KdTree {
         
         if (node != NULL) {
 
-            float delta_x = node->point.x - target.x;
-            float delta_y = node->point.y - target.y;
-            float delta_z = node->point.z - target.z;
+            float delta_x = node->point[0] - target[0];
+            float delta_y = node->point[1] - target[1];
+            float delta_z = node->point[2] - target[2];
 
             if ((delta_x >= -distanceTol && delta_x <= distanceTol) &&
                 (delta_y >= -distanceTol && delta_y <= distanceTol) &&
