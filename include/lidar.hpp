@@ -28,6 +28,7 @@
 #include <iostream>
 #include <vector>
 
+#include "../include/kdtree.hpp"
 #include "../include/object.hpp"
 
     // Cloud filtering function

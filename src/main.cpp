@@ -35,16 +35,25 @@ ros::Subscriber sub_LiDAR_RawPointCloud;
 // -- LiDAR callback
 void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
 
-    // 1. Transforming ROS message into PCL point cloud
+    // 0. CLOUD PRE-PROCESSING
+    // 0.a. Auxiliar definitions for publishing objects with colours
+    std_msgs::ColorRGBA red;
+    red.a = 1.0, red.r = 1.0, red.g = 0.0, red.b = 0.0;
+    std_msgs::ColorRGBA green;
+    green.a = 1.0, green.r = 0.0, green.g = 1.0, green.b = 0.0;
+    std_msgs::ColorRGBA blue;
+    blue.a = 1.0, blue.r = 0.0, blue.g = 0.0, blue.g = 1.0;
+
+    // 0.b. Transforming ROS message into PCL point cloud
     pcl::PointCloud<pcl::PointXYZ>::Ptr nonFilteredCloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::fromROSMsg(*LidarMsg, *nonFilteredCloud);
 
-    // 2. Cloud filtering by XYZ and angle
+    // 1. CLOUD FILTERING (by XYZ and angle)
     pcl::PointCloud<pcl::PointXYZ> auxFilteredCloud = CloudFiltering(nonFilteredCloud);
     pcl::PointCloud<pcl::PointXYZ>::Ptr FilteredCloud (new pcl::PointCloud<pcl::PointXYZ>);
     *FilteredCloud = auxFilteredCloud;
 
-    // 2.b. Publishing intermediate output 1 -> filtered cloud
+    // 1.b. Publishing intermediate output 1 -> filtered cloud
     sensor_msgs::PointCloud2 msgFilteredCloud;
     pcl::toROSMsg(*FilteredCloud, msgFilteredCloud);
     msgFilteredCloud.header.frame_id = LidarMsg->header.frame_id;
@@ -52,10 +61,10 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
 
     pub_LiDAR_FilteredCloud.publish(msgFilteredCloud);
 
-    // 3. Plane segmentation
-    // 3.b. Publishing intermediate output 2 -> segmented plane
+    // 2. PLANE SEGMENTATION (with Ransac3D algorithm)
+    // 2.b. Publishing intermediate output 2 -> segmented plane
 
-    // 4. Clustering extraction
+    // 3. CLUSTERING EXTRACTION
     std::vector<Object> Obstacles;
     int numObstacles = 0;
 
@@ -63,11 +72,7 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
     *ObstaclesCloud = auxFilteredCloud;
     ClusteringExtraction(ObstaclesCloud, 1, 10, 400, &Obstacles, &numObstacles);
 
-    // -- Colours
-    std_msgs::ColorRGBA red;
-    red.a = 1.0, red.r = 1.0, red.g = 0.0, red.b = 0.0;
-
-    // 4.b. Publsihing clusters
+    // 3.b. Publsihing clusters
     for (int i = 0; i < Obstacles.size(); i++) {
 
 		visualization_msgs::Marker ObstaclesMarker;
@@ -95,7 +100,7 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
 		pub_LiDAR_ObstaclesMarkers.publish(ObstaclesMarker);
 	}
 
-    // 4.c. Publishing bounding boxes
+    // 3.c. Publishing bounding boxes
 
 }
 

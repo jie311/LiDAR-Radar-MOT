@@ -131,12 +131,33 @@ std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr C
 
 
 /****************************************************
- *  Cloud separation (TO BE DONE)
+ *  Cloud separation
  * 
  *  I- Original cloud, Inliers to split
- *  O- New cloud with only inliers
+ *  O- Pair of clouds: plane and obstacles
  * **************************************************/
 
+std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> CloudSeparation (std::unordered_set<int> inliers, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud) {
+
+    // Creating two new point clouds, one with obstacles and other with plane
+    pcl::PointCloud<pcl::PointXYZ>::Ptr obstCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr planeCloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+    // Looping over inliers to build plane cloud
+    for (int i : inliers->indices) {    roadCloud->points.push_back(cloud->points[i])   }
+
+    // Extracting inliers from obstacles cloud
+    pcl::ExtractIndices<pcl::PointXYZ> extract;
+    extract.setInputCloud(Cloud);
+    extract.setIndices(inliers);
+    extract.setNegative(true);
+    extract.filter(obstCloud);
+
+    // Create and return std pair of point clouds
+    std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segResult(obstCloud, planeCloud);
+    return segResult;
+
+}
 
  /****************************************************
  *  Clustering extraction
