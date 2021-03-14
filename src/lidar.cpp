@@ -54,15 +54,15 @@ pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::P
  *  O- InlierPoints (ready for cloud separation)
  * **************************************************/
 
-std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold) {
+pcl::Indices PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold) {
 
     auto StartTime = std::chrono::steady_clock::now();
 
-    std::unordered_set<int> InlierPoints;
+    pcl::Indices InlierPoints;
     while (MaxIterations--) {
 
         // 1. Choose three random points
-        std::unordered_set<int> TargetPoints;
+        pcl::Indices TargetPoints;
         while(TargetPoints.size() < 3) {
             TargetPoints.insert(rand()%Cloud->size());
         }
@@ -137,21 +137,21 @@ std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr C
  *  O- Pair of clouds: plane and obstacles
  * **************************************************/
 
-std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> CloudSeparation (std::unordered_set<int> inliers, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud) {
+std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> CloudSeparation (pcl::Indices inliers, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud) {
 
     // Creating two new point clouds, one with obstacles and other with plane
     pcl::PointCloud<pcl::PointXYZ>::Ptr obstCloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr planeCloud (new pcl::PointCloud<pcl::PointXYZ>);
 
     // Looping over inliers to build plane cloud
-    for (int i : inliers->indices) {    roadCloud->points.push_back(cloud->points[i])   }
+    for (int i : inliers->indices) {    planeCloud->points.push_back(Cloud->points[i])   }
 
     // Extracting inliers from obstacles cloud
     pcl::ExtractIndices<pcl::PointXYZ> extract;
     extract.setInputCloud(Cloud);
     extract.setIndices(inliers);
     extract.setNegative(true);
-    extract.filter(obstCloud);
+    extract.filter(*obstCloud);
 
     // Create and return std pair of point clouds
     std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segResult(obstCloud, planeCloud);
