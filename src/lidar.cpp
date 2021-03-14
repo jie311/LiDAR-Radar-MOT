@@ -54,7 +54,7 @@ pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::P
  *  O- InlierPoints (ready for cloud separation)
  * **************************************************/
 
-std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold) {
+std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, int MaxIterations, float Threshold) {
 
     auto StartTime = std::chrono::steady_clock::now();
 
@@ -108,11 +108,12 @@ std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr C
             float zi = Point.z;
             float Dist = fabs(a * xi + b * yi + c * zi)/den;
 
-            // 4. If the dist < threshold -> point is an inlier
+            // If the dist < threshold -> point is an inlier
             if (Dist < Threshold) {
                 TargetPoints.insert(i);
             }
             
+            // 4. Store the results of the plane that has more points
             if (TargetPoints.size() > InlierPoints.size()) {
                 InlierPoints = TargetPoints;
             }
@@ -121,11 +122,28 @@ std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr C
 
     }
 
+    // 5. Creating two new point clouds, one with obstacles and other with plane
+    pcl::PointCloud<pcl::PointXYZ>::Ptr obstCloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr planeCloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+    // Divide the floor and the rest in 2 different point clouds
+    for (int i = 0; i < (int) Cloud->points.size(); i++) {
+
+        pcl::PointXYZ Point = Cloud->points[i];
+        if (InlierPoints.count(i)) {
+            planeCloud->points.push_back(Point);
+        } else {
+            obstCloud->points.push_back(Point);
+        }
+
+    }
+
     auto EndTime = std::chrono::steady_clock::now();
     auto ElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(EndTime - StartTime);
     std::cout << "Plane segmentation (Ransac3D) took: " << ElapsedTime.count() << " ms" << std::endl;
 
-    return InlierPoints;
+    std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segResult(obstCloud, planeCloud);
+    return segResult;
 
 }
 
@@ -136,15 +154,13 @@ std::unordered_set<int> PlaneSegmentation (pcl::PointCloud<pcl::PointXYZ>::Ptr C
  *  I- Original cloud, Inliers to split
  *  O- Pair of clouds: plane and obstacles
  * **************************************************/
-
+/*
 std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> CloudSeparation (std::unordered_set<int> inliers, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud) {
 
-    // Creating two new point clouds, one with obstacles and other with plane
-    pcl::PointCloud<pcl::PointXYZ>::Ptr obstCloud (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr planeCloud (new pcl::PointCloud<pcl::PointXYZ>);
+
 
     // Looping over inliers to build plane cloud
-    for (int i : inliers->indices) {    planeCloud->points.push_back(Cloud->points[i])   }
+    for (int i : inliers->indices) {    planeCloud->points.push_back(Cloud->points[i]);   }
 
     // Extracting inliers from obstacles cloud
     pcl::ExtractIndices<pcl::PointXYZ> extract;
@@ -158,7 +174,7 @@ std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::P
     return segResult;
 
 }
-
+*/
  /****************************************************
  *  Clustering extraction
  * 
