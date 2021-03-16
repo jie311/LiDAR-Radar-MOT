@@ -67,8 +67,8 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
     pcl::PointCloud<pcl::PointXYZ>::Ptr roadCloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr obstCloud (new pcl::PointCloud<pcl::PointXYZ>);
     segCloud = PlaneSegmentation(FilteredCloud, 100, 0.2);
-    *obstCloud = segCloud.first;
-    *roadCloud = segCloud.second;
+    *obstCloud = *segCloud.first;
+    *roadCloud = *segCloud.second;
 
     // 2.b. Publishing intermediate output 2 -> segmented plane
     sensor_msgs::PointCloud2 msgRoadCloud;
@@ -86,7 +86,7 @@ void LiDAR_CB (const sensor_msgs::PointCloud2::ConstPtr& LidarMsg) {
     *ObstaclesCloud = auxFilteredCloud;
     ClusteringExtraction(ObstaclesCloud, 1, 10, 400, &Obstacles, &numObstacles);
 
-    // 3.b. Publsihing clusters
+    // 3.b. Publishing clusters
     for (int i = 0; i < Obstacles.size(); i++) {
 
 		visualization_msgs::Marker ObstaclesMarker;

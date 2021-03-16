@@ -39,5 +39,6 @@
 
     // Clustering extraction function
     void ClusteringExtraction (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, float Tolerance, int MinSize, int MaxSize, std::vector<Object> *outputObjects, int *numOutputObjects);
+    void ClusterHelper (int idx, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, std::vector<int>& Cluster, std::vector<bool>& Processed, KdTree* Tree, float DistanceTol);
 
 #endif

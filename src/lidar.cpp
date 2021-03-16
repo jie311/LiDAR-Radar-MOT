@@ -12,7 +12,6 @@ pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::P
     pcl::PointCloud<pcl::PointXYZ> auxFilteredCloud;
     
     // -- XYZ filtering
-
     for (int i = 0; i < nonFilteredCloud->points.size(); i++) {
 
         pcl::PointXYZ Point = nonFilteredCloud->points[i];
@@ -24,7 +23,6 @@ pcl::PointCloud<pcl::PointXYZ> CloudFiltering (pcl::PointCloud<pcl::PointXYZ>::P
     }
 
     // -- Angle filtering
-
     pcl::PointCloud<pcl::PointXYZ> FilteredCloud;
     float FieldOfView = 80;
     double FovMin = -(FieldOfView/2)*(3.14/180);;
@@ -145,41 +143,13 @@ std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::P
 
 }
 
-
-/****************************************************
- *  Cloud separation
- * 
- *  I- Original cloud, Inliers to split
- *  O- Pair of clouds: plane and obstacles
- * **************************************************/
-/*
-std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> CloudSeparation (std::unordered_set<int> inliers, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud) {
-
-
-
-    // Looping over inliers to build plane cloud
-    for (int i : inliers->indices) {    planeCloud->points.push_back(Cloud->points[i]);   }
-
-    // Extracting inliers from obstacles cloud
-    pcl::ExtractIndices<pcl::PointXYZ> extract;
-    extract.setInputCloud(Cloud);
-    extract.setIndices(inliers);
-    extract.setNegative(true);
-    extract.filter(*obstCloud);
-
-    // Create and return std pair of point clouds
-    std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segResult(obstCloud, planeCloud);
-    return segResult;
-
-}
-*/
  /****************************************************
  *  Clustering extraction
  * 
  *  I- Original cloud, Inliers to split
  *  O- New cloud with only inliers
  * **************************************************/
-
+/*
  void ClusteringExtraction (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, float Tolerance, int MinSize, int MaxSize, std::vector<Object>* outputObjects, int* numOutputObjects) {
 
     // -- KD-tree object definition
@@ -255,3 +225,30 @@ std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::P
     }
 
 }
+
+
+void ClusteringExtraction (pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, float Tolerance, int MinSize, int MaxSize,
+                             std::vector<Object>* outputObjects, int* numOutputObjects) {
+
+    std:vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clusters;
+
+    KdTree* tree = new KdTree;
+
+
+}
+*/
+
+void ClusterHelper (int idx, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, std::vector<int>& Cluster,
+                     std::vector<bool>& Processed, KdTree* Tree, float DistanceTol) {
+
+    Processed[idx] = true;
+    Cluster.push_back(idx);
+    std::vector<int> nearest = Tree->search(Cloud->points[idx], DistanceTol);
+
+    for (auto id : nearest) {
+        if(!Processed[id]) {     ClusterHelper(id, Cloud, Cluster, Processed, Tree, DistanceTol)     }
+    }
+
+}
+
+
