@@ -251,4 +251,66 @@ void ClusterHelper (int idx, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud, std::vec
 
 }
 
+std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> EuclideanClustering (pcl::PointCloud<PointXYZ>::Ptr Cloud, float Tolerance,
+                                                                        int MinSize, int MaxSize) {
 
+    // 1. Create and fill KdTree based on cloud points
+    KdTree* Tree = new KdTree;
+    std::vector<std::vector<float>> treePoints;
+
+    for (int idx = 0; idx < Cloud->points.size(); idx++) {
+
+        std::vector<float> Point = {Cloud->points[idx].x, Cloud->points[idx].y, Cloud->points[idx].z};
+        treePoints.push_back(Point);
+        Tree->insert(Point, idx);
+
+    }
+
+    // 2. Perform Euclidean Clustering based on hyperparameters
+    //      Obtaining a vector of indices for each cluster
+    std::vector<std::vector<int>> clustersIndicesVector;
+    std::vector<bool> processedPoints(treePoints.size(), false);
+
+    int idy = 0;
+    while (i < treePoints.size()) {
+
+        // If the point was previously processed, continue
+        if (processedPoints[idy]) {
+            idy++;
+            continue;
+        }
+
+        // Else, create a new cluster
+        std::vector<int> Cluster;
+        ClusterHelper(idy, treePoints, processedPoints, Tree, Tolerance);
+        clustersIndicesVector.push_back(Cluster);
+        idy++;
+
+    }
+
+    // 3. Obtain individual clusters based on clusters indices vector
+    std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> clustersVector
+    for (std::vector<int> clusterIndex : clustersIndicesVector) {
+
+        // Conversion from vector of indices to pcl::PointCloud
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloudCluster (new pcl::PointCloud<PointT>);
+        for (int idz : clusterIndex) {  cloudCluster->points.push_back(Cloud->points[idz]);  }
+
+        // If the cluster meets the size requirements, push it to pcl::PointCloud output vector. Else, discard.
+        if ((cloudCluster->points.size() > minSize) && (cloudCluster->points.size() < maxSize)) {
+
+            // Adding extra information to the cluster
+            cloudCluster->width = cloudCluster->points.size();
+            cloudCluster->height = 1;
+            cloudCluster->is_dense = true;
+
+            // Pushing to output vector
+            clustersVector.push_back(cloudCluster);
+
+        }
+        
+    }
+
+    return clustersVector;
+
+}
